@@ -6,6 +6,9 @@ body { background: var(--bg); color: var(--ink); font: 16px/1.5 "Segoe UI", syst
 .intro h1 { margin: 0; font: 600 44px/1.1 Georgia, serif; letter-spacing: -0.01em; }
 .lede { margin: 12px 0 4px; font-size: 20px; color: var(--ink); max-width: 46em; }
 .fine { margin: 0; color: var(--dim); font-size: 14px; }
+.links { margin: 16px 0 0; }
+.repo { display: inline-block; padding: 7px 14px; border-radius: 8px; background: var(--ink); color: #fff; font-size: 14px; font-weight: 600; text-decoration: none; }
+.repo:hover, .repo:focus-visible { background: var(--accent); }
 h2 { margin: 40px 0 14px; font-size: 15px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--dim); }
 .samples { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 18px; }
 .samples button { width: 100%; padding: 0; border: 1px solid var(--line); border-radius: 10px; background: #fff; cursor: pointer; text-align: left; overflow: hidden; transition: transform .15s, box-shadow .15s; font: inherit; color: inherit; }
