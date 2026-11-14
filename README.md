@@ -10,5 +10,7 @@ page; the shells' Save downloads the file. Nothing is uploaded.
   (Carlito, Caladea, Gelasio, Liberation, Selawik; licences beside them).
 - `docs/`: the built site, which GitHub Pages serves.
 
-Build: `OFFICE_DIST=<rbt-office checkout>/dist ./build.sh`. `node tools/check.mjs docs out` serves the
-build, opens every sample and reports page errors.
+Build: `npm install`, then `OFFICE_DIST=<rbt-office checkout>/dist npm run build`. `npm run check` serves the
+build, opens every sample and reports page errors (`LIVE=<url> npm run check` checks a deployed copy).
+
+Licence: MIT (see `LICENSE`). Fonts and photos have their own licences: see `public/CREDITS.html`.

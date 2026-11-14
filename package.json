@@ -1,0 +1,15 @@
+{
+  "name": "rbt-office-demo",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "build": "./build.sh",
+    "check": "node tools/check.mjs docs check"
+  },
+  "devDependencies": {
+    "jszip": "3.10.1",
+    "playwright": "1.58.2",
+    "vite": "7.3.1"
+  }
+}

@@ -1,8 +1,6 @@
 // node tools/check.mjs [siteDir] [outDir] — serve the built site, open each sample, screenshot, report errors.
 import fs from "node:fs"; import path from "node:path"; import http from "node:http";
-import { createRequire } from "node:module";
-const require = createRequire("/home/dave/Dev/redbat-test/mega/frontend/package.json");
-const { chromium } = require("playwright");
+import { chromium } from "playwright";
 const site = path.resolve(process.argv[2] ?? "site"), out = path.resolve(process.argv[3] ?? "check");
 fs.mkdirSync(out, { recursive: true });
 const types = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".woff2": "font/woff2", ".png": "image/png", ".dat": "application/octet-stream" };

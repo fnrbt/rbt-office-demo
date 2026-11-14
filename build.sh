@@ -6,7 +6,6 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 : "${OFFICE_DIST:?set OFFICE_DIST to an rbt-office dist folder}"
-VITE=${VITE:-/home/dave/Dev/redbat-test/mega/frontend/node_modules/vite/bin/vite.js}
-node "$VITE" build
+npx vite build
 touch docs/.nojekyll
 echo "built docs/ against $OFFICE_DIST"
