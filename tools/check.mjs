@@ -13,8 +13,9 @@ const server = http.createServer((req, res) => {
   res.setHeader("Content-Type", types[path.extname(p)] ?? "application/octet-stream");
   fs.createReadStream(p).pipe(res);
 });
-await new Promise((r) => server.listen(0, "127.0.0.1", r));
-const base = `http://127.0.0.1:${server.address().port}/`;
+const live = process.env.LIVE;
+if (!live) await new Promise((r) => server.listen(0, "127.0.0.1", r));
+const base = live ?? `http://127.0.0.1:${server.address().port}/`;
 const b = await chromium.launch();
 const errors = [];
 const page = await b.newPage({ viewport: { width: 1440, height: 900 } });
@@ -32,4 +33,4 @@ for (const f of process.argv.slice(4).length ? process.argv.slice(4) : ["annual-
   console.log("opened", f, await page.evaluate(() => document.querySelector("#appname")?.textContent));
 }
 console.log(errors.length ? "ERRORS:\n" + [...new Set(errors)].join("\n") : "no errors");
-await b.close(); server.close();
+await b.close(); if (!live) server.close();
