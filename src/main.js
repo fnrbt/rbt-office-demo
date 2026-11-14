@@ -6,7 +6,7 @@ import * as Shell from "@rbt/office/word/WordShell.js";
 import * as Dom from "@rbt/office/word/FableUI/Dom.js";
 import createSpreadsheet from "@rbt/office/spreadsheet/Spreadsheet.js";
 import { createSpreadsheetShell } from "@rbt/office/spreadsheet/Toolbar.js";
-import { faceUrl, loadAllFaces } from "./fonts.js";
+import { faceUrl, loadAllFaces, pdfFonts } from "./fonts.js";
 
 const samples = [
   { file: "annual-review.docx", name: "Annual review", kind: "Document · report with photo and tables" },
@@ -26,6 +26,8 @@ async function wordHost() {
   if (!word) {
     word = Host.create("", "word-shell");
     Dom.mountApp("#word", Shell.view(word));
+    // File > Print renders a PDF with these fonts embedded.
+    pdfFonts().then((fonts) => Host.setPdfFonts(word, fonts));
     await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
   }
   return word;
@@ -39,6 +41,7 @@ function sheetShell() {
       const url = faceUrl(family, bold, italic);
       return url ? new Uint8Array(await (await fetch(url)).arrayBuffer()) : null;
     });
+    pdfFonts().then((fonts) => grid.SetPdfFonts(fonts));
     const shell = createSpreadsheetShell(grid, () => {});
     shell.Mount($("sheetbar"));
     sheet = { grid, shell };

@@ -37,3 +37,32 @@ export function loadAllFaces() {
   }
   return Promise.all(faces);
 }
+
+// The same stand-ins as TrueType files, for the PDF writer (it embeds TrueType;
+// Gelasio is cut into static weights). Loaded once, when a document is first opened.
+const ttf = {
+  Calibri: ["Carlito-Regular", "Carlito-Bold", "Carlito-Italic", "Carlito-BoldItalic"],
+  "Calibri Light": ["Carlito-Regular", "Carlito-Bold", "Carlito-Italic", "Carlito-BoldItalic"],
+  Cambria: ["Caladea-Regular", "Caladea-Bold", "Caladea-Italic", "Caladea-BoldItalic"],
+  Georgia: ["Gelasio-Regular", "Gelasio-Bold", "Gelasio-Italic", "Gelasio-BoldItalic"],
+  "Times New Roman": ["LiberationSerif-Regular", "LiberationSerif-Bold", "LiberationSerif-Italic", "LiberationSerif-BoldItalic"],
+  Arial: ["LiberationSans-Regular", "LiberationSans-Bold", "LiberationSans-Italic", "LiberationSans-BoldItalic"],
+  "Segoe UI": ["Selawik-Regular", "Selawik-Bold", "Selawik-Regular", "Selawik-Bold"],
+};
+let pdfFontsPromise = null;
+/** [{ family, bold, italic, data }] for every face, as the Word and spreadsheet PDF writers take them. */
+export function pdfFonts() {
+  pdfFontsPromise ??= (async () => {
+    const files = new Map();
+    const bytes = (name) => {
+      if (!files.has(name)) files.set(name, fetch(new URL(`ttf/${name}.ttf`, fontsDir)).then((r) => r.arrayBuffer()).then((b) => new Uint8Array(b)));
+      return files.get(name);
+    };
+    const faces = [];
+    for (const [family, names] of Object.entries(ttf)) {
+      for (const [i, name] of names.entries()) faces.push({ family, bold: i === 1 || i === 3, italic: i >= 2, data: await bytes(name) });
+    }
+    return faces;
+  })();
+  return pdfFontsPromise;
+}
