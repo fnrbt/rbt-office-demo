@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>rbt-office: documents and spreadsheets in the browser</title>
+  <meta name="description" content="Open, edit and save .docx and .xlsx files in the browser with rbt-office. Nothing is uploaded.">
+  <script type="module" crossorigin src="./assets/index-CFN-aUBe.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-qiksYH3M.css">
+</head>
+<body>
+  <main id="home">
+    <header class="intro">
+      <h1>rbt-office</h1>
+      <p class="lede">Documents and spreadsheets, opened, edited and saved as <code>.docx</code> and <code>.xlsx</code>, right in your browser.</p>
+      <p class="fine">Everything runs on this page: files never leave your computer.</p>
+    </header>
+    <section>
+      <h2>Try a sample</h2>
+      <ul id="samples" class="samples"></ul>
+    </section>
+    <section class="own">
+      <h2>Or open your own</h2>
+      <label class="drop" id="drop">
+        <input type="file" id="pick" accept=".docx,.xlsx">
+        <span>Drop a <code>.docx</code> or <code>.xlsx</code> file here, or <u>choose one</u>.</span>
+      </label>
+    </section>
+    <footer>
+      <a href="https://github.com/fnrbt/rbt-office">Source on GitHub</a> ·
+      <a href="./CREDITS.html">Fonts and photo credits</a>
+    </footer>
+  </main>
+  <div id="app" hidden>
+    <nav class="appbar">
+      <button id="back" type="button">← Samples</button>
+      <span id="appname"></span>
+    </nav>
+    <div id="word" hidden></div>
+    <div id="sheet" hidden><div id="sheetbar"></div><div id="sheetgrid"></div></div>
+  </div>
+</body>
+</html>
