@@ -6,8 +6,8 @@
   <title>rbt-office: documents and spreadsheets in the browser</title>
   <meta name="description" content="Open, edit and save .docx and .xlsx files in the browser with rbt-office. Nothing is uploaded.">
   <link rel="icon" href="./favicon.svg" type="image/svg+xml">
-  <script type="module" crossorigin src="./assets/index-C_ir5BCS.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-DRGdRvJC.css">
+  <script type="module" crossorigin src="./assets/index-CxMC3Zg2.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-BO0QN4K7.css">
 </head>
 <body>
   <main id="home">
@@ -21,23 +21,34 @@
       <h2>Try a sample</h2>
       <ul id="samples" class="samples"></ul>
     </section>
+    <section>
+      <h2>VBA macros</h2>
+      <ul id="macro-samples" class="samples"></ul>
+    </section>
     <section class="own">
       <h2>Or open your own</h2>
       <label class="drop" id="drop">
-        <input type="file" id="pick" accept=".docx,.xlsx">
-        <span>Drop a <code>.docx</code> or <code>.xlsx</code> file here, or <u>choose one</u>.</span>
+        <input type="file" id="pick" accept=".docx,.docm,.xlsx,.xlsm">
+        <span>Drop a <code>.docx</code>, <code>.xlsx</code>, <code>.docm</code> or <code>.xlsm</code> file here, or <u>choose one</u>.</span>
       </label>
     </section>
     <footer>
       <a href="https://github.com/fnrbt/rbt-office">rbt-office on GitHub</a> ·
       <a href="https://github.com/fnrbt/rbt-office-demo">This page's source</a> ·
-      <a href="./CREDITS.html">Fonts and photo credits</a>
+      <a href="./CREDITS.html">Fonts, photo and macro credits</a>
     </footer>
   </main>
   <div id="app" hidden>
     <nav class="appbar">
       <button id="back" type="button">← Samples</button>
       <span id="appname"></span>
+      <span id="macrobar" class="macrobar" hidden>
+        <span id="macro-note"></span>
+        <button id="macro-enable" type="button">Enable macros</button>
+        <select id="macro-list" hidden></select>
+        <button id="macro-run" type="button" hidden>Run</button>
+        <button id="macro-stop" type="button" hidden>Stop</button>
+      </span>
     </nav>
     <div id="word" hidden></div>
     <div id="sheet" hidden><div id="sheetbar"></div><div id="sheetgrid"></div></div>

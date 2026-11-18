@@ -4,6 +4,7 @@ import "@rbt/office/office-formats/src/Main.js";
 import * as Host from "@rbt/office/word/WordHost.js";
 import * as Shell from "@rbt/office/word/WordShell.js";
 import * as Dom from "@rbt/office/word/FableUI/Dom.js";
+import Word from "@rbt/office/word/Word.js";
 import createSpreadsheet from "@rbt/office/spreadsheet/Spreadsheet.js";
 import { createSpreadsheetShell } from "@rbt/office/spreadsheet/Toolbar.js";
 import { faceUrl, loadAllFaces, pdfFonts } from "./fonts.js";
@@ -15,6 +16,14 @@ const samples = [
   { file: "dashboard.xlsx", name: "Generation dashboard", kind: "Spreadsheet · charts, data bars, formulas" },
   { file: "budget.xlsx", name: "Operating budget", kind: "Spreadsheet · a plain grid of formulas" },
 ];
+// Macro-enabled files: VBA run in the page. `run` is the macro the bar offers first.
+const macroSamples = [
+  { file: "snake.xlsm", name: "Snake", kind: "Spreadsheet · VBA game: OnTime, OnKey", run: "StartGame" },
+  { file: "mandelbrot.xlsm", name: "Mandelbrot", kind: "Spreadsheet · VBA, one cell a pixel", run: "DrawMandelbrot" },
+  { file: "sierpinski.xlsm", name: "Sierpinski pentagon", kind: "Spreadsheet · VBA drawing 7,776 shapes", run: "main" },
+  { file: "rainbow.docm", name: "Rainbow", kind: "Document · VBA: every character a colour", run: "Rainbow" },
+];
+const allSamples = [...samples, ...macroSamples];
 
 const $ = (id) => document.getElementById(id);
 const fontsReady = loadAllFaces();
@@ -61,22 +70,76 @@ function show(kind, name) {
 async function open(file) {
   const lower = file.name.toLowerCase();
   await fontsReady;
-  if (lower.endsWith(".docx")) {
+  if (lower.endsWith(".docx") || lower.endsWith(".docm")) {
     show("word", file.name);
-    Host.openFile(await wordHost(), file);
-  } else if (lower.endsWith(".xlsx")) {
+    const host = await wordHost();
+    macroBar(null);
+    Host.openFile(host, file);
+    // (It opens asynchronously: the bar follows once the document is in.)
+    for (let i = 0; i < 100 && /^Opening/.test(host.Status.Value); i++) await new Promise((r) => setTimeout(r, 100));
+    macroBar(Word.hasMacros(host.Editor) ? wordMacros(host.Editor) : null, file.name);
+  } else if (lower.endsWith(".xlsx") || lower.endsWith(".xlsm")) {
     show("sheet", file.name);
     const { grid, shell } = sheetShell();
     await grid.ImportXlsx(new Uint8Array(await file.arrayBuffer()));
     // (The shell names the workbook it saves after the file it opened itself.)
     shell.fileName = file.name;
     shell.refreshFileState?.();
+    macroBar(grid.HasMacros ? sheetMacros(grid) : null, file.name);
   } else {
-    alert("rbt-office opens .docx and .xlsx files.");
+    alert("rbt-office opens .docx, .docm, .xlsx and .xlsm files.");
     return;
   }
   if (location.hash !== `#${encodeURIComponent(file.name)}`) history.pushState({ open: file.name }, "", `#${encodeURIComponent(file.name)}`);
 }
+
+// The macro bar: a file with macros says so, as Office's "Enable content"; once enabled, its macros
+// (Alt+F8's list) run from here - or from the file's own buttons.
+const sheetMacros = (grid) => ({
+  enable: () => grid.EnableMacros(),
+  list: () => grid.GetMacros(),
+  run: (name) => grid.RunMacro(name),
+  stop: () => grid.StopMacro(),
+  running: () => grid.MacroRunning,
+  focus: () => $("sheetgrid").querySelector("[tabindex]")?.focus(),
+});
+const wordMacros = (editor) => ({
+  enable: () => Word.enableMacros(editor),
+  list: () => Word.getMacros(editor),
+  run: (name) => Word.runMacro(editor, name),
+  stop: null,
+  running: () => false,
+  focus: () => {},
+});
+let macros = null;
+function macroBar(m, fileName) {
+  macros = m;
+  const bar = $("macrobar");
+  bar.hidden = !m;
+  if (!m) return;
+  $("macro-enable").hidden = false;
+  $("macro-note").textContent = "This file has VBA macros.";
+  for (const id of ["macro-list", "macro-run", "macro-stop"]) $(id).hidden = true;
+  bar.dataset.first = allSamples.find((s) => s.file === fileName)?.run ?? "";
+}
+$("macro-enable").addEventListener("click", async () => {
+  const m = macros;
+  if (!m) return;
+  $("macro-enable").disabled = true;
+  try { await m.enable(); } finally { $("macro-enable").disabled = false; }
+  if (m !== macros) return;
+  const list = $("macro-list");
+  list.replaceChildren(...m.list().filter((n) => !/\.(Workbook|Document)_/.test(n)).map((n) => new Option(n, n)));
+  const first = $("macrobar").dataset.first;
+  if (first && [...list.options].some((o) => o.value === first)) list.value = first;
+  $("macro-enable").hidden = true;
+  $("macro-note").textContent = "Macros enabled.";
+  list.hidden = $("macro-run").hidden = false;
+  $("macro-stop").hidden = !m.stop;
+  m.focus();
+});
+$("macro-run").addEventListener("click", () => { if (macros && $("macro-list").value) { macros.run($("macro-list").value); macros.focus(); } });
+$("macro-stop").addEventListener("click", () => macros?.stop?.());
 
 async function openSample(s) {
   const bytes = await (await fetch(`samples/${s.file}`)).arrayBuffer();
@@ -92,14 +155,16 @@ function home() {
 $("back").addEventListener("click", () => history.back());
 addEventListener("popstate", () => (location.hash ? openLinked() : home()));
 
-const list = $("samples");
-for (const s of samples) {
+for (const [listId, group] of [["samples", samples], ["macro-samples", macroSamples]]) {
+const list = $(listId);
+for (const s of group) {
   const li = document.createElement("li");
   li.innerHTML = `<button type="button"><img alt="" src="samples/thumbs/${s.file}.png" loading="lazy"><span class="meta"><span class="name"></span><span class="kind"></span></span></button>`;
   li.querySelector(".name").textContent = s.name;
   li.querySelector(".kind").textContent = s.kind;
   li.querySelector("button").addEventListener("click", () => openSample(s));
   list.append(li);
+}
 }
 
 $("pick").addEventListener("change", (e) => {
@@ -119,7 +184,7 @@ drop.addEventListener("drop", (e) => {
 
 // A link to a sample (#annual-review.docx) opens it, on load or when the hash changes.
 function openLinked() {
-  const linked = samples.find((s) => `#${encodeURIComponent(s.file)}` === location.hash);
+  const linked = allSamples.find((s) => `#${encodeURIComponent(s.file)}` === location.hash);
   if (linked && $("appname").textContent !== linked.file) openSample(linked);
 }
 addEventListener("hashchange", openLinked);

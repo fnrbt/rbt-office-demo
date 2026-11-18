@@ -31,3 +31,7 @@ footer a { color: inherit; }
 #word[hidden], #sheet[hidden] { display: none; }
 #word > * { flex: 1; min-height: 0; }
 #sheetgrid { flex: 1; min-height: 0; }
+.macrobar { margin-left: auto; display: flex; align-items: center; gap: 8px; padding: 2px 4px 2px 12px; border-radius: 8px; background: #fff7e0; border: 1px solid #f0d890; }
+.macrobar[hidden] { display: none; }
+.macrobar select { font: inherit; padding: 3px 6px; border: 1px solid var(--line); border-radius: 6px; }
+#macro-enable, #macro-run { background: var(--accent); border-color: var(--accent); color: #fff; }
