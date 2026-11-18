@@ -67,7 +67,7 @@ function show(kind, name) {
   document.title = `${name} · rbt-office`;
 }
 
-async function open(file) {
+async function open(file, trusted = false) {
   const lower = file.name.toLowerCase();
   await fontsReady;
   if (lower.endsWith(".docx") || lower.endsWith(".docm")) {
@@ -77,7 +77,7 @@ async function open(file) {
     Host.openFile(host, file);
     // (It opens asynchronously: the bar follows once the document is in.)
     for (let i = 0; i < 100 && /^Opening/.test(host.Status.Value); i++) await new Promise((r) => setTimeout(r, 100));
-    macroBar(Word.hasMacros(host.Editor) ? wordMacros(host.Editor) : null, file.name);
+    macroBar(Word.hasMacros(host.Editor) ? wordMacros(host.Editor) : null, file.name, trusted);
   } else if (lower.endsWith(".xlsx") || lower.endsWith(".xlsm")) {
     show("sheet", file.name);
     const { grid, shell } = sheetShell();
@@ -85,7 +85,7 @@ async function open(file) {
     // (The shell names the workbook it saves after the file it opened itself.)
     shell.fileName = file.name;
     shell.refreshFileState?.();
-    macroBar(grid.HasMacros ? sheetMacros(grid) : null, file.name);
+    macroBar(grid.HasMacros ? sheetMacros(grid) : null, file.name, trusted);
   } else {
     alert("rbt-office opens .docx, .docm, .xlsx and .xlsm files.");
     return;
@@ -112,17 +112,20 @@ const wordMacros = (editor) => ({
   focus: () => {},
 });
 let macros = null;
-function macroBar(m, fileName) {
+// (The page's own samples open with their macros enabled; a visitor's file asks first, as Office does.)
+function macroBar(m, fileName, trusted = false) {
   macros = m;
   const bar = $("macrobar");
   bar.hidden = !m;
   if (!m) return;
-  $("macro-enable").hidden = false;
-  $("macro-note").textContent = "This file has VBA macros.";
+  $("macro-enable").hidden = trusted;
+  $("macro-note").textContent = trusted ? "Enabling macros…" : "This file has VBA macros.";
   for (const id of ["macro-list", "macro-run", "macro-stop"]) $(id).hidden = true;
   bar.dataset.first = allSamples.find((s) => s.file === fileName)?.run ?? "";
+  if (trusted) enableMacros();
 }
-$("macro-enable").addEventListener("click", async () => {
+$("macro-enable").addEventListener("click", () => enableMacros());
+async function enableMacros() {
   const m = macros;
   if (!m) return;
   $("macro-enable").disabled = true;
@@ -137,13 +140,13 @@ $("macro-enable").addEventListener("click", async () => {
   list.hidden = $("macro-run").hidden = false;
   $("macro-stop").hidden = !m.stop;
   m.focus();
-});
+}
 $("macro-run").addEventListener("click", () => { if (macros && $("macro-list").value) { macros.run($("macro-list").value); macros.focus(); } });
 $("macro-stop").addEventListener("click", () => macros?.stop?.());
 
 async function openSample(s) {
   const bytes = await (await fetch(`samples/${s.file}`)).arrayBuffer();
-  await open(new File([bytes], s.file));
+  await open(new File([bytes], s.file), true);
 }
 
 function home() {

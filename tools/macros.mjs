@@ -25,8 +25,7 @@ page.on("dialog", (d) => { errors.push("dialog: " + d.message()); d.dismiss(); }
 const idle = () => page.waitForFunction(() => !window.demo.sheet?.grid.MacroRunning, null, { timeout: 120000 });
 const enable = async (file) => {
   await page.goto(base + "#" + encodeURIComponent(file));
-  await page.waitForSelector("#macro-enable:not([hidden])", { timeout: 30000 });
-  await page.click("#macro-enable");
+  // (The samples open with their macros enabled.)
   await page.waitForSelector("#macro-run:not([hidden])", { timeout: 60000 });
 };
 const shot = async (file) => { await page.screenshot({ path: path.join(out, file + ".png") }); console.log("ran", file); };
