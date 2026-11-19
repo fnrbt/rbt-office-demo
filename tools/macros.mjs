@@ -2,7 +2,15 @@
 // macros, run them (from the file's own button where it has one), screenshot, report errors.
 // (LIVE=<url> checks a deployed copy.)
 import fs from "node:fs"; import path from "node:path"; import http from "node:http";
-import { chromium } from "playwright";
+import { pathToFileURL } from "node:url";
+// BROWSER=chromium | firefox | webkit (default chromium); DEVICE=<a Playwright device name, e.g. "iPhone 15">;
+// PLAYWRIGHT=<path to another playwright's index.mjs> (one whose browsers are installed).
+const playwright = await import(process.env.PLAYWRIGHT ? pathToFileURL(process.env.PLAYWRIGHT).href : "playwright");
+const browserName = process.env.BROWSER ?? "chromium";
+const browserType = playwright[browserName] ?? playwright.default?.[browserName];
+if (!browserType?.launch) throw new Error(`Unknown Playwright browser: ${browserName}`);
+const device = process.env.DEVICE ? (playwright.devices ?? playwright.default.devices)[process.env.DEVICE] : null;
+if (process.env.DEVICE && !device) throw new Error(`Unknown Playwright device: ${process.env.DEVICE}`);
 const site = path.resolve(process.argv[2] ?? "docs"), out = path.resolve(process.argv[3] ?? "check");
 fs.mkdirSync(out, { recursive: true });
 const types = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".woff2": "font/woff2", ".png": "image/png" };
@@ -16,9 +24,10 @@ const server = http.createServer((req, res) => {
 const live = process.env.LIVE;
 if (!live) await new Promise((r) => server.listen(0, "127.0.0.1", r));
 const base = live ?? `http://127.0.0.1:${server.address().port}/`;
-const b = await chromium.launch();
+const b = await browserType.launch();
+console.log(`browser: ${browserName} ${b.version()}${device ? ` as ${process.env.DEVICE}` : ""}`);
 const errors = [];
-const page = await b.newPage({ viewport: { width: 1440, height: 900 } });
+const page = await b.newPage(device ? { ...device } : { viewport: { width: 1440, height: 900 } });
 page.on("pageerror", (e) => errors.push(String(e).slice(0, 300)));
 page.on("console", (m) => { if (m.type() === "error") errors.push("console: " + m.text().slice(0, 300)); });
 page.on("dialog", (d) => { errors.push("dialog: " + d.message()); d.dismiss(); });

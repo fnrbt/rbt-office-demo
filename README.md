@@ -12,6 +12,7 @@ page; the shells' Save downloads the file. Nothing is uploaded.
 - `docs/`: the built site, which GitHub Pages serves.
 
 Build: `npm install`, then `OFFICE_DIST=<rbt-office checkout>/dist npm run build`. `npm run check` serves the
-build, opens every sample and reports page errors (`node tools/macros.mjs docs check` runs the macro samples) (`LIVE=<url> npm run check` checks a deployed copy).
+build, opens every sample and reports page errors (`node tools/macros.mjs docs check` runs the macro samples) (`LIVE=<url> npm run check` checks a deployed copy). Both take `BROWSER=firefox` or `BROWSER=webkit` (default
+chromium), `DEVICE="iPhone 15"` (a Playwright device profile) and `PLAYWRIGHT=<path to a playwright/index.mjs>` (one whose browsers are installed).
 
 Licence: MIT (see `LICENSE`). Fonts and photos have their own licences: see `public/CREDITS.html`.
