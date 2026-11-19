@@ -1,13 +1,12 @@
 // rbt-office demo: the package's own Word and spreadsheet shells, opened on a
 // sample or on a file of the visitor's. Nothing leaves the page.
-import "@rbt/office/office-formats/src/Main.js";
 import * as Host from "@rbt/office/word/WordHost.js";
 import * as Shell from "@rbt/office/word/WordShell.js";
 import * as Dom from "@rbt/office/word/FableUI/Dom.js";
 import Word from "@rbt/office/word/Word.js";
 import createSpreadsheet from "@rbt/office/spreadsheet/Spreadsheet.js";
 import { createSpreadsheetShell } from "@rbt/office/spreadsheet/Toolbar.js";
-import { faceUrl, loadAllFaces, pdfFonts } from "./fonts.js";
+import { faceUrl, loadFaces, pdfFonts } from "./fonts.js";
 
 const samples = [
   { file: "annual-review.docx", name: "Annual review", kind: "Document · report with photo and tables" },
@@ -26,7 +25,13 @@ const macroSamples = [
 const allSamples = [...samples, ...macroSamples];
 
 const $ = (id) => document.getElementById(id);
-const fontsReady = loadAllFaces();
+// The TrueType faces the PDF writers embed: fetched once a document is on screen, not before
+// (File > Print waits for them if it comes first).
+let pdfFontsStarted = false;
+function pdfFontsSoon(install) {
+  setTimeout(() => pdfFonts().then(install), pdfFontsStarted ? 0 : 3000);
+  pdfFontsStarted = true;
+}
 
 // The Word shell and the spreadsheet shell are each made once, on first use.
 let word = null;
@@ -36,7 +41,7 @@ async function wordHost() {
     word = Host.create("", "word-shell");
     Dom.mountApp("#word", Shell.view(word));
     // File > Print renders a PDF with these fonts embedded.
-    pdfFonts().then((fonts) => Host.setPdfFonts(word, fonts));
+    pdfFontsSoon((fonts) => Host.setPdfFonts(word, fonts));
     await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
   }
   return word;
@@ -50,7 +55,7 @@ function sheetShell() {
       const url = faceUrl(family, bold, italic);
       return url ? new Uint8Array(await (await fetch(url)).arrayBuffer()) : null;
     });
-    pdfFonts().then((fonts) => grid.SetPdfFonts(fonts));
+    pdfFontsSoon((fonts) => grid.SetPdfFonts(fonts));
     const shell = createSpreadsheetShell(grid, () => {});
     shell.Mount($("sheetbar"));
     sheet = { grid, shell };
@@ -69,10 +74,14 @@ function show(kind, name) {
 
 async function open(file, trusted = false) {
   const lower = file.name.toLowerCase();
-  await fontsReady;
   if (lower.endsWith(".docx") || lower.endsWith(".docm")) {
     show("word", file.name);
-    const host = await wordHost();
+    // Only the faces this document is set in, loaded before it is laid out (its lines are measured
+    // in them): read once here to ask the document which.
+    const bytes = await file.arrayBuffer();
+    const { forEditorPackage } = await import("@rbt/office/office-formats/src/WordPackageOpen.js");
+    const [host, faces] = await Promise.all([wordHost(), forEditorPackage(bytes).then((p) => Word.getRequiredFonts(p)).catch(() => [])]);
+    await loadFaces(faces);
     macroBar(null);
     Host.openFile(host, file);
     // (It opens asynchronously: the bar follows once the document is in.)
@@ -188,7 +197,8 @@ drop.addEventListener("drop", (e) => {
 // A link to a sample (#annual-review.docx) opens it, on load or when the hash changes.
 function openLinked() {
   const linked = allSamples.find((s) => `#${encodeURIComponent(s.file)}` === location.hash);
-  if (linked && $("appname").textContent !== linked.file) openSample(linked);
+  // (The home page stays hidden meanwhile: its thumbnails are not fetched for a sample opened by link.)
+  if (linked && $("appname").textContent !== linked.file) { $("home").hidden = true; openSample(linked); }
 }
 addEventListener("hashchange", openLinked);
 openLinked();

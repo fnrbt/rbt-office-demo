@@ -22,6 +22,29 @@ export function faceUrl(family, bold, italic) {
   return key ? new URL(`${families[key][kind(bold, italic)]}.woff2`, fontsDir).href : null;
 }
 
+const loaded = new Map();
+/** Register and load the stand-ins of the faces given ([{ family, bold, italic }], as Word.getRequiredFonts
+ *  lists them); faces without a stand-in, or loaded already, are skipped. Resolves when they are ready. */
+export function loadFaces(faces) {
+  const waits = [];
+  for (const f of faces ?? []) {
+    const family = f.family ?? f.Family, bold = !!(f.bold ?? f.Bold), italic = !!(f.italic ?? f.Italic);
+    const key = Object.keys(families).find((k) => k.toLowerCase() === String(family ?? "").trim().toLowerCase());
+    if (!key) continue;
+    const id = `${key}|${bold}|${italic}`;
+    if (!loaded.has(id)) {
+      const face = new FontFace(key, `url(${new URL(`${families[key][kind(bold, italic)]}.woff2`, fontsDir).href})`, {
+        weight: bold ? "700" : "400",
+        style: italic ? "italic" : "normal",
+      });
+      document.fonts.add(face);
+      loaded.set(id, face.load().catch(() => null));
+    }
+    waits.push(loaded.get(id));
+  }
+  return Promise.all(waits);
+}
+
 /** Register every face under its Office name and load them all (resolves when ready). */
 export function loadAllFaces() {
   const faces = [];
