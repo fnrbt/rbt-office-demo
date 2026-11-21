@@ -10,6 +10,7 @@ import { faceUrl, loadFaces, pdfFonts } from "./fonts.js";
 
 const samples = [
   { file: "annual-review.docx", name: "Annual review", kind: "Document · report with photo and tables" },
+  { file: "magazine-feature.docx", name: "Magazine feature", kind: "Document · columns, footnotes, pull quote, table" },
   { file: "field-notes.docx", name: "Field notes", kind: "Document · magazine page, drop cap, columns" },
   { file: "services-agreement.docx", name: "Services agreement", kind: "Document · formal, with placeholders" },
   { file: "dashboard.xlsx", name: "Generation dashboard", kind: "Spreadsheet · charts, data bars, formulas" },

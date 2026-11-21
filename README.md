@@ -1,7 +1,7 @@
 # rbt-office demo
 
 A static page that opens `.docx` and `.xlsx` files in [rbt-office](https://github.com/fnrbt/rbt-office)'s
-own browser shells: five samples, or a file of your own (drag and drop or pick). Edits stay in the
+own browser shells: six samples, or a file of your own (drag and drop or pick). Edits stay in the
 page; the shells' Save downloads the file. Nothing is uploaded.
 
 - `index.html`, `src/`: the page (about a hundred lines around `WordShell` and `createSpreadsheetShell`).

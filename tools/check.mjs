@@ -33,7 +33,7 @@ page.on("response", (r) => { if (r.status() >= 400) errors.push(`${r.status()} $
 await page.goto(base);
 await page.waitForTimeout(1500);
 await page.screenshot({ path: path.join(out, "home.png") });
-for (const f of process.argv.slice(4).length ? process.argv.slice(4) : ["annual-review.docx", "field-notes.docx", "services-agreement.docx", "dashboard.xlsx", "budget.xlsx"]) {
+for (const f of process.argv.slice(4).length ? process.argv.slice(4) : ["annual-review.docx", "magazine-feature.docx", "field-notes.docx", "services-agreement.docx", "dashboard.xlsx", "budget.xlsx"]) {
   await page.goto(base + "#" + encodeURIComponent(f));
   await page.waitForTimeout(f.endsWith(".docx") ? 4500 : 3500);
   await page.screenshot({ path: path.join(out, f + ".png") });
